@@ -1,0 +1,10 @@
+{
+  "name": "SmartAttend Attendance Management",
+  "short_name": "SmartAttend",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f7fb",
+  "theme_color": "#111827",
+  "description": "Attendance, scheduling, leave and payroll management.",
+  "icons": []
+}

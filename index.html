@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<link rel="manifest" href="manifest.json">
 <title>SmartAttend — Attendance Management System</title>
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -41,6 +43,7 @@
   <div style="display:flex;align-items:center;gap:12px"><button class="hamb" id="hamb">☰</button><div class="top-search">⌕ <input id="globalSearch" placeholder="Search employees, records..."></div></div>
   <div class="user"><button class="notification-button" onclick="go('manager')" title="Open notifications">●<span id="notificationCount">0</span></button><select id="roleSwitcher" class="role-switcher" onchange="changeRole(this.value)"><option value="admin">Administrator</option><option value="manager">Manager</option><option value="payroll">Payroll</option><option value="employee">Employee view</option></select><div class="avatar">A</div></div>
 </header>
+<div class="connection-banner" id="connectionBanner" role="status" aria-live="polite"></div>
 <div class="content">
 
 <section class="page active" id="page-dashboard">
@@ -62,7 +65,7 @@
 </section>
 
 <section class="page" id="page-manager">
-  <div class="page-head"><div><h1>Manager Center</h1><p>Review attendance exceptions, approve overtime and prepare payroll.</p></div><div class="actions"><button class="btn" onclick="refreshManagerData()">↻ Refresh</button><button class="btn primary" onclick="go('payroll')">Review Payroll</button></div></div>
+  <div class="page-head"><div><h1>Manager Center</h1><p>Review attendance exceptions, approve overtime and prepare payroll.</p></div><div class="actions"><button class="btn" data-roles="admin,manager,payroll" onclick="refreshManagerData()">↻ Refresh</button><button class="btn primary" data-roles="admin,manager,payroll" onclick="go('payroll')">Review Payroll</button></div></div>
   <div class="cards manager-stats">
     <div class="card stat"><div><small>Needs review</small><h2 id="managerReviewCount">0</h2><span class="delta">Attendance exceptions</span></div><div class="stat-icon">!</div></div>
     <div class="card stat"><div><small>Overtime pending</small><h2 id="managerOTCount">0</h2><span class="delta">Approval requests</span></div><div class="stat-icon">◷</div></div>
@@ -73,9 +76,9 @@
     <div class="card"><div class="section-title"><h3>Attendance exceptions</h3><span class="subtle">Missing checkout, late arrival and corrections</span></div><div id="managerExceptions"></div></div>
     <div class="card"><div class="section-title"><h3>Overtime approvals</h3><span class="subtle">Review extra hours before payroll</span></div><div id="managerOvertime"></div></div>
   </div>
-  <div class="card manager-schedule"><div class="section-title"><h3>Today's schedule</h3><button class="btn" onclick="go('shifts')">Manage schedules</button></div><div id="managerSchedule"></div></div>
-  <div class="card manager-payroll"><div class="section-title"><div><h3>Payroll control</h3><span class="subtle">Review the current month before locking</span></div><div class="actions"><button class="btn" onclick="exportPayroll()">⇩ Export CSV</button><button class="btn primary" id="payrollLockButton" onclick="togglePayrollLock()">Lock payroll</button></div></div><div id="managerPayrollSummary"></div></div>
-  <div class="card"><div class="section-title"><h3>Notifications</h3><button class="btn" onclick="markNotificationsRead()">Mark all read</button></div><div id="managerNotifications"></div></div>
+  <div class="card manager-schedule"><div class="section-title"><h3>Today's schedule</h3><button class="btn" data-roles="admin,manager" onclick="go('shifts')">Manage schedules</button></div><div id="managerSchedule"></div></div>
+  <div class="card manager-payroll"><div class="section-title"><div><h3>Payroll control</h3><span class="subtle">Review the current month before locking</span></div><div class="actions"><button class="btn" data-roles="admin,manager,payroll" onclick="exportPayroll()">⇩ Export CSV</button><button class="btn primary" data-roles="admin,manager,payroll" id="payrollLockButton" onclick="togglePayrollLock()">Lock payroll</button></div></div><div id="managerPayrollSummary"></div></div>
+  <div class="card"><div class="section-title"><h3>Notifications</h3><button class="btn" data-roles="admin,manager,payroll" onclick="markNotificationsRead()">Mark all read</button></div><div id="managerNotifications"></div></div>
 </section>
 
 <section class="page" id="page-selfservice">
@@ -102,7 +105,7 @@
 </section>
 
 <section class="page" id="page-employees">
- <div class="page-head"><div><h1>Employees</h1><p>Employee profiles, rates, departments and biometric enrollment.</p></div><div class="actions"><label class="btn">⇧ Import CSV<input id="employeeImport" type="file" accept=".csv,text/csv" onchange="importEmployees(event)" hidden></label><button class="btn primary" onclick="openModal('employeeModal')">＋ Add Employee</button></div></div>
+ <div class="page-head"><div><h1>Employees</h1><p>Employee profiles, rates, departments and biometric enrollment.</p></div><div class="actions"><label class="btn" data-roles="admin,manager">⇧ Import CSV<input id="employeeImport" type="file" accept=".csv,text/csv" onchange="importEmployees(event)" hidden></label><button class="btn primary" data-roles="admin,manager" onclick="openModal('employeeModal')">＋ Add Employee</button></div></div>
  <div class="filters"><input id="empSearch" placeholder="Search by name, ID or department..." oninput="renderEmployees()"><select id="empDept" onchange="renderEmployees()"><option value="">All departments</option></select></div>
  <div class="card table-card"><table class="table"><thead><tr><th>ID</th><th>Employee</th><th>Department</th><th>Phone</th><th>Start</th><th>End</th><th>Work Hrs/Day</th><th>Monthly Salary</th><th>Actions</th></tr></thead><tbody id="employeesBody"></tbody></table></div>
 </section>
@@ -129,9 +132,9 @@
 </section>
 
 <section class="page" id="page-payroll">
- <div class="page-head"><div><h1>Payroll & Payments</h1><p>Hourly, daily, weekly and monthly payment calculations.</p></div><div class="actions"><button class="btn" onclick="printTable('payrollTable')">🖨 Print Payroll</button><button class="btn primary" onclick="finalizePayroll()">Finalize Payroll</button></div></div>
+ <div class="page-head"><div><h1>Payroll & Payments</h1><p>Hourly, daily, weekly and monthly payment calculations.</p></div><div class="actions"><button class="btn" onclick="printTable('payrollTable')">🖨 Print Payroll</button><button class="btn primary" data-roles="admin,manager,payroll" onclick="finalizePayroll()">Finalize Payroll</button></div></div>
  <div class="filters"><input type="month" id="payMonth" onchange="renderPayroll()"><select id="payDept" onchange="renderPayroll()"><option value="">All departments</option></select></div>
-  <div class="card table-card"><table class="table" id="payrollTable"><thead><tr><th>Employee</th><th>Department</th><th>Basic</th><th>Allowance</th><th>Total Salary</th><th>OT Hrs</th><th>Total OT</th><th>Total Pay</th><th>Status</th></tr></thead><tbody id="payrollBody"></tbody></table></div>
+  <div class="card table-card"><table class="table" id="payrollTable"><thead><tr><th>Employee</th><th>Department</th><th>Basic</th><th>Allowance</th><th>Total Salary</th><th>Paid Leave</th><th>Unpaid Deduction</th><th>OT Hrs</th><th>Total OT</th><th>Bonus</th><th>Deduction</th><th>Total Pay</th><th>Status</th></tr></thead><tbody id="payrollBody"></tbody></table></div>
 </section>
 
 <section class="page" id="page-locations">
@@ -142,7 +145,7 @@
 <section class="page" id="page-leaves">
  <div class="page-head"><div><h1>Leave Management</h1><p>Submit, approve and track employee leave.</p></div><button class="btn primary" onclick="openModal('leaveModal')">＋ New Leave</button></div>
  <div class="cards leave-balances" id="leaveBalances"></div>
- <div class="card table-card"><table class="table"><thead><tr><th>Employee</th><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Status</th><th>Action</th></tr></thead><tbody id="leaveBody"></tbody></table></div>
+ <div class="card table-card"><table class="table"><thead><tr><th>Employee</th><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Leave Salary</th><th>Status</th><th>Action</th></tr></thead><tbody id="leaveBody"></tbody></table></div>
 </section>
 
 <section class="page" id="page-reports">
@@ -184,6 +187,7 @@
 <div class="form-group"><label>Starting Time</label><input id="eStart" type="time" required value="09:00"></div><div class="form-group"><label>Ending Time</label><input id="eEnd" type="time" required value="17:00"></div>
 <div class="form-group"><label>Basic Salary</label><input id="eBasic" type="number" step="0.01" min="0" value="2500"></div><div class="form-group"><label>Allowance</label><input id="eAllowance" type="number" step="0.01" min="0" value="500"></div>
 <div class="form-group"><label>Monthly Salary</label><input id="eMonthly" type="number" step="0.01" min="0" value="3000"></div><div class="form-group"><label>Status</label><select id="eStatus"><option>Active</option><option>Inactive</option></select></div>
+<div class="form-group"><label>Monthly Bonus</label><input id="eBonus" type="number" step="0.01" min="0" value="0"></div><div class="form-group"><label>Monthly Deduction</label><input id="eDeduction" type="number" step="0.01" min="0" value="0"></div>
 </div><div class="form-actions"><button type="button" class="btn" onclick="closeModal('employeeModal')">Cancel</button><button class="btn primary">Save Employee</button></div></form></div></div>
 
 <div class="modal" id="attendanceModal"><div class="modal-box"><div class="modal-head"><h2>Manual Attendance Entry</h2><button class="close" onclick="closeModal('attendanceModal')">✕</button></div><form class="form" onsubmit="addAttendance(event)"><div class="form-grid">
@@ -205,7 +209,7 @@
 
 <div class="modal" id="payslipModal"><div class="modal-box"><div class="modal-head"><h2>Payslip preview</h2><button class="close" onclick="closeModal('payslipModal')">✕</button></div><div id="payslipContent"></div><div class="form-actions"><button class="btn" onclick="printPayslip()">Print payslip</button><button class="btn primary" onclick="closeModal('payslipModal')">Close</button></div></div></div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="script.js"></script>
 </body>
