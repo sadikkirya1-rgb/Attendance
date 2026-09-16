@@ -1,5 +1,5 @@
 const CACHE_NAME = 'smartattend-shell-v2';
-const APP_SHELL = ['./', './index.html', './styles.css', './script.js', './manifest.json'];
+const APP_SHELL = ['./', './index.html', './styles.css', './script.js'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));

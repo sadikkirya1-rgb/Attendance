@@ -1,3 +1,4 @@
+.preset-btn[data-preset="custom"]{display:none}
 :root{--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#6b7280;--line:#e7eaf0;--primary:#4f46e5;--primary2:#7c3aed;--success:#16a34a;--danger:#dc2626;--warning:#d97706;--sidebar:#111827}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--text);background:var(--bg)}
 button,input,select,textarea{font:inherit}button{cursor:pointer;border:0}.app{display:flex;min-height:100vh}
