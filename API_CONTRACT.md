@@ -44,6 +44,8 @@ Roles used by the frontend: `admin`, `manager`, `payroll`, and `employee`.
   "id": "EMP-001",
   "name": "Alex Morgan",
   "department": "Engineering",
+  "email": "alex.morgan@company.com",
+  "location": "Main Office",
   "phone": "+971 50 111 2200",
   "status": "Active",
   "workingHours": 8,
