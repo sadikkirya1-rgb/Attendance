@@ -13,6 +13,8 @@
   <div class="nav-title">Main</div>
   <nav class="nav">
     <a href="#" class="active" data-page="dashboard">▦ <span>Dashboard</span></a>
+    <a href="#" data-page="manager">◈ <span>Manager Center</span><span class="nav-count" id="managerNavCount">0</span></a>
+    <a href="#" data-page="selfservice">◎ <span>My Portal</span></a>
     <a href="#" data-page="attendance">◷ <span>Attendance</span></a>
     <a href="#" data-page="employees">♙ <span>Employees</span></a>
     <a href="#" data-page="departments">▤ <span>Departments</span></a>
@@ -37,7 +39,7 @@
 <main class="main">
 <header class="topbar">
   <div style="display:flex;align-items:center;gap:12px"><button class="hamb" id="hamb">☰</button><div class="top-search">⌕ <input id="globalSearch" placeholder="Search employees, records..."></div></div>
-  <div class="user"><div><b>Administrator</b><div style="font-size:11px;color:#6b7280;text-align:right">System Admin</div></div><div class="avatar">A</div></div>
+  <div class="user"><button class="notification-button" onclick="go('manager')" title="Open notifications">●<span id="notificationCount">0</span></button><select id="roleSwitcher" class="role-switcher" onchange="changeRole(this.value)"><option value="admin">Administrator</option><option value="manager">Manager</option><option value="payroll">Payroll</option><option value="employee">Employee view</option></select><div class="avatar">A</div></div>
 </header>
 <div class="content">
 
@@ -59,6 +61,40 @@
   </div>
 </section>
 
+<section class="page" id="page-manager">
+  <div class="page-head"><div><h1>Manager Center</h1><p>Review attendance exceptions, approve overtime and prepare payroll.</p></div><div class="actions"><button class="btn" onclick="refreshManagerData()">↻ Refresh</button><button class="btn primary" onclick="go('payroll')">Review Payroll</button></div></div>
+  <div class="cards manager-stats">
+    <div class="card stat"><div><small>Needs review</small><h2 id="managerReviewCount">0</h2><span class="delta">Attendance exceptions</span></div><div class="stat-icon">!</div></div>
+    <div class="card stat"><div><small>Overtime pending</small><h2 id="managerOTCount">0</h2><span class="delta">Approval requests</span></div><div class="stat-icon">◷</div></div>
+    <div class="card stat"><div><small>Payroll status</small><h2 id="managerPayrollStatus">Open</h2><span class="delta" id="managerPayrollPeriod">Current period</span></div><div class="stat-icon">▰</div></div>
+    <div class="card stat"><div><small>Unread alerts</small><h2 id="managerAlertCount">0</h2><span class="delta">Manager notifications</span></div><div class="stat-icon">●</div></div>
+  </div>
+  <div class="manager-grid">
+    <div class="card"><div class="section-title"><h3>Attendance exceptions</h3><span class="subtle">Missing checkout, late arrival and corrections</span></div><div id="managerExceptions"></div></div>
+    <div class="card"><div class="section-title"><h3>Overtime approvals</h3><span class="subtle">Review extra hours before payroll</span></div><div id="managerOvertime"></div></div>
+  </div>
+  <div class="card manager-schedule"><div class="section-title"><h3>Today's schedule</h3><button class="btn" onclick="go('shifts')">Manage schedules</button></div><div id="managerSchedule"></div></div>
+  <div class="card manager-payroll"><div class="section-title"><div><h3>Payroll control</h3><span class="subtle">Review the current month before locking</span></div><div class="actions"><button class="btn" onclick="exportPayroll()">⇩ Export CSV</button><button class="btn primary" id="payrollLockButton" onclick="togglePayrollLock()">Lock payroll</button></div></div><div id="managerPayrollSummary"></div></div>
+  <div class="card"><div class="section-title"><h3>Notifications</h3><button class="btn" onclick="markNotificationsRead()">Mark all read</button></div><div id="managerNotifications"></div></div>
+</section>
+
+<section class="page" id="page-selfservice">
+  <div class="page-head"><div><h1>My Employee Portal</h1><p>Review your attendance, schedule, leave and payroll information.</p></div><button class="btn primary" onclick="openModal('correctionModal')">＋ Request correction</button></div>
+  <div class="filters"><label class="inline-label">Employee <select id="selfEmployee" onchange="renderSelfService()"></select></label></div>
+  <div class="cards">
+    <div class="card stat"><div><small>Present this month</small><h2 id="selfPresent">0</h2></div><div class="stat-icon">✓</div></div>
+    <div class="card stat"><div><small>Overtime hours</small><h2 id="selfOvertime">0</h2></div><div class="stat-icon">◷</div></div>
+    <div class="card stat"><div><small>Leave balance</small><h2 id="selfLeaveBalance">0</h2></div><div class="stat-icon">◌</div></div>
+    <div class="card stat"><div><small>Monthly pay</small><h2 id="selfPay">$0</h2></div><div class="stat-icon">▰</div></div>
+  </div>
+  <div class="portal-grid">
+    <div class="card"><div class="section-title"><h3>My schedule</h3><span class="subtle" id="selfScheduleLabel"></span></div><div id="selfSchedule"></div></div>
+    <div class="card"><div class="section-title"><h3>Leave balance</h3><button class="btn" onclick="openModal('leaveModal')">Request leave</button></div><div id="selfLeaveDetails"></div></div>
+  </div>
+  <div class="card"><div class="section-title"><h3>My attendance</h3><span class="subtle">Current month</span></div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Check in</th><th>Check out</th><th>Hours</th><th>OT</th><th>Status</th></tr></thead><tbody id="selfAttendanceBody"></tbody></table></div></div>
+  <div class="card"><div class="section-title"><h3>Payslip preview</h3><button class="btn" onclick="openPayslip()">Open payslip</button></div><div id="selfPayslip"></div></div>
+</section>
+
 <section class="page" id="page-attendance">
   <div class="page-head"><div><h1>Attendance Records</h1><p>Track check-in/out, hours, location, rate and calculated pay.</p></div><div class="actions"><button class="btn" onclick="printTable('attendanceTable')">🖨 Print</button><button class="btn primary" onclick="openModal('attendanceModal')">＋ Add Record</button></div></div>
   <div class="filters"><input id="attSearch" placeholder="Search employee..." oninput="renderAttendance()"><input id="attDate" type="date" onchange="renderAttendance()"><select id="attStatus" onchange="renderAttendance()"><option value="">All status</option><option>Present</option><option>Late</option><option>Absent</option><option>Leave</option></select><select id="attPeriod" onchange="renderAttendance()"><option value="day">Day</option><option value="week">Week</option><option value="month">Month</option></select><button class="btn" onclick="clearFilters()">Clear filters</button></div>
@@ -66,9 +102,9 @@
 </section>
 
 <section class="page" id="page-employees">
- <div class="page-head"><div><h1>Employees</h1><p>Employee profiles, rates, departments and biometric enrollment.</p></div><button class="btn primary" onclick="openModal('employeeModal')">＋ Add Employee</button></div>
+ <div class="page-head"><div><h1>Employees</h1><p>Employee profiles, rates, departments and biometric enrollment.</p></div><div class="actions"><label class="btn">⇧ Import CSV<input id="employeeImport" type="file" accept=".csv,text/csv" onchange="importEmployees(event)" hidden></label><button class="btn primary" onclick="openModal('employeeModal')">＋ Add Employee</button></div></div>
  <div class="filters"><input id="empSearch" placeholder="Search by name, ID or department..." oninput="renderEmployees()"><select id="empDept" onchange="renderEmployees()"><option value="">All departments</option></select></div>
- <div class="card table-card"><table class="table"><thead><tr><th>ID</th><th>Employee</th><th>Department</th><th>Phone</th><th>Work Hrs/Day</th><th>Monthly Salary</th><th>Actions</th></tr></thead><tbody id="employeesBody"></tbody></table></div>
+ <div class="card table-card"><table class="table"><thead><tr><th>ID</th><th>Employee</th><th>Department</th><th>Phone</th><th>Start</th><th>End</th><th>Work Hrs/Day</th><th>Monthly Salary</th><th>Actions</th></tr></thead><tbody id="employeesBody"></tbody></table></div>
 </section>
 
 <section class="page" id="page-departments">
@@ -79,6 +115,7 @@
 <section class="page" id="page-shifts">
  <div class="page-head"><div><h1>Shifts & Schedules</h1><p>Configure standard working hours and attendance rules.</p></div><button class="btn primary" onclick="openModal('shiftModal')">＋ Add Shift</button></div>
  <div class="card table-card"><table class="table"><thead><tr><th>Shift</th><th>Start</th><th>End</th><th>Grace</th><th>Working Days</th><th>Status</th></tr></thead><tbody id="shiftsBody"></tbody></table></div>
+ <div class="card schedule-board"><div class="section-title"><h3>Weekly team schedule</h3><span class="subtle">Active employee assignments</span></div><div id="weeklySchedule"></div></div>
 </section>
 
 <section class="page" id="page-scanner">
@@ -92,7 +129,7 @@
 </section>
 
 <section class="page" id="page-payroll">
- <div class="page-head"><div><h1>Payroll & Payments</h1><p>Hourly, daily, weekly and monthly payment calculations.</p></div><button class="btn" onclick="printTable('payrollTable')">🖨 Print Payroll</button></div>
+ <div class="page-head"><div><h1>Payroll & Payments</h1><p>Hourly, daily, weekly and monthly payment calculations.</p></div><div class="actions"><button class="btn" onclick="printTable('payrollTable')">🖨 Print Payroll</button><button class="btn primary" onclick="finalizePayroll()">Finalize Payroll</button></div></div>
  <div class="filters"><input type="month" id="payMonth" onchange="renderPayroll()"><select id="payDept" onchange="renderPayroll()"><option value="">All departments</option></select></div>
   <div class="card table-card"><table class="table" id="payrollTable"><thead><tr><th>Employee</th><th>Department</th><th>Basic</th><th>Allowance</th><th>Total Salary</th><th>OT Hrs</th><th>Total OT</th><th>Total Pay</th><th>Status</th></tr></thead><tbody id="payrollBody"></tbody></table></div>
 </section>
@@ -104,6 +141,7 @@
 
 <section class="page" id="page-leaves">
  <div class="page-head"><div><h1>Leave Management</h1><p>Submit, approve and track employee leave.</p></div><button class="btn primary" onclick="openModal('leaveModal')">＋ New Leave</button></div>
+ <div class="cards leave-balances" id="leaveBalances"></div>
  <div class="card table-card"><table class="table"><thead><tr><th>Employee</th><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Status</th><th>Action</th></tr></thead><tbody id="leaveBody"></tbody></table></div>
 </section>
 
@@ -129,6 +167,10 @@
    <div class="setting-row"><div><b>Allow QR attendance</b><p>Enable QR-based check-in and check-out.</p></div><label class="switch"><input id="setQR" type="checkbox" checked><span class="slider"></span></label></div>
    <div class="setting-row"><div><b>Allow biometric attendance</b><p>Enable device biometric / face workflows where supported.</p></div><label class="switch"><input id="setBio" type="checkbox" checked><span class="slider"></span></label></div>
    <div class="setting-row"><div><b>Currency</b><p>Currency used in payroll tables.</p></div><select id="currency"><option>USD</option><option>AED</option><option>EUR</option><option>GBP</option></select></div>
+   <div class="setting-row"><div><b>Time mode</b><p>Choose how times are displayed throughout the application.</p></div><select id="timeMode"><option value="12">12 hour</option><option value="24">24 hour</option></select></div>
+   <div class="setting-row"><div><b>Normal working days per week</b><p>Used when converting basic salary to an hourly rate.</p></div><input id="workingDays" type="number" min="1" max="7" step="1" value="5"></div>
+   <div class="setting-row"><div><b>Company holidays</b><p>Holidays are treated as non-working days in schedule planning.</p></div><div class="actions"><input id="holidayDate" type="date"><input id="holidayName" placeholder="Holiday name"><button class="btn" onclick="addHoliday()">Add</button></div></div>
+   <div id="holidayList"></div>
  </div>
 </section>
 
@@ -139,6 +181,7 @@
 <div class="form-group"><label>Employee ID</label><input id="eId" required placeholder="EMP-004"></div><div class="form-group"><label>Full Name</label><input id="eName" required placeholder="Jane Doe"></div>
 <div class="form-group"><label>Department</label><select id="eDept"></select></div><div class="form-group"><label>Phone</label><input id="ePhone" placeholder="+971..."></div>
 <div class="form-group"><label>Hourly Rate</label><input id="eRate" type="number" step=".01" min="0" required value="15"></div><div class="form-group"><label>Working Hours / Day</label><input id="eWork" type="number" step="0.5" min="1" max="24" required value="8"></div>
+<div class="form-group"><label>Starting Time</label><input id="eStart" type="time" required value="09:00"></div><div class="form-group"><label>Ending Time</label><input id="eEnd" type="time" required value="17:00"></div>
 <div class="form-group"><label>Basic Salary</label><input id="eBasic" type="number" step="0.01" min="0" value="2500"></div><div class="form-group"><label>Allowance</label><input id="eAllowance" type="number" step="0.01" min="0" value="500"></div>
 <div class="form-group"><label>Monthly Salary</label><input id="eMonthly" type="number" step="0.01" min="0" value="3000"></div><div class="form-group"><label>Status</label><select id="eStatus"><option>Active</option><option>Inactive</option></select></div>
 </div><div class="form-actions"><button type="button" class="btn" onclick="closeModal('employeeModal')">Cancel</button><button class="btn primary">Save Employee</button></div></form></div></div>
@@ -157,6 +200,10 @@
 <div class="modal" id="locationModal"><div class="modal-box"><div class="modal-head"><h2>Add Location</h2><button class="close" onclick="closeModal('locationModal')">✕</button></div><form class="form" onsubmit="addLocation(event)"><div class="form-grid"><div class="form-group"><label>Name</label><input id="lName" required placeholder="Branch Office"></div><div class="form-group"><label>Address</label><input id="lAddress" required placeholder="City / area"></div><div class="form-group"><label>Latitude</label><input id="lLat" type="number" step="any" placeholder="Optional"></div><div class="form-group"><label>Longitude</label><input id="lLng" type="number" step="any" placeholder="Optional"></div></div><div class="form-actions"><button type="button" class="btn" onclick="closeModal('locationModal')">Cancel</button><button class="btn primary">Save</button></div></form></div></div>
 
 <div class="modal" id="leaveModal"><div class="modal-box"><div class="modal-head"><h2>New Leave Request</h2><button class="close" onclick="closeModal('leaveModal')">✕</button></div><form class="form" onsubmit="addLeave(event)"><div class="form-grid"><div class="form-group"><label>Employee</label><select id="lvEmp"></select></div><div class="form-group"><label>Leave type</label><select id="lvType"><option>Annual</option><option>Sick</option><option>Personal</option><option>Unpaid</option></select></div><div class="form-group"><label>From</label><input id="lvFrom" type="date" required></div><div class="form-group"><label>To</label><input id="lvTo" type="date" required></div></div><div class="form-actions"><button type="button" class="btn" onclick="closeModal('leaveModal')">Cancel</button><button class="btn primary">Submit Request</button></div></form></div></div>
+
+<div class="modal" id="correctionModal"><div class="modal-box"><div class="modal-head"><h2>Request attendance correction</h2><button class="close" onclick="closeModal('correctionModal')">✕</button></div><form class="form" onsubmit="addCorrection(event)"><div class="form-grid"><div class="form-group"><label>Employee</label><select id="cEmp" required></select></div><div class="form-group"><label>Date</label><input id="cDate" type="date" required></div><div class="form-group"><label>Requested check-in</label><input id="cIn" type="time"></div><div class="form-group"><label>Requested check-out</label><input id="cOut" type="time"></div><div class="form-group full"><label>Reason</label><textarea id="cReason" rows="3" required placeholder="Explain what needs to be corrected"></textarea></div></div><div class="form-actions"><button type="button" class="btn" onclick="closeModal('correctionModal')">Cancel</button><button class="btn primary">Submit for approval</button></div></form></div></div>
+
+<div class="modal" id="payslipModal"><div class="modal-box"><div class="modal-head"><h2>Payslip preview</h2><button class="close" onclick="closeModal('payslipModal')">✕</button></div><div id="payslipContent"></div><div class="form-actions"><button class="btn" onclick="printPayslip()">Print payslip</button><button class="btn primary" onclick="closeModal('payslipModal')">Close</button></div></div></div>
 
 <div class="toast" id="toast"></div>
 
