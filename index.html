@@ -15,6 +15,7 @@
   <nav class="nav">
     <a href="#" class="active" data-page="dashboard">▦ <span>Dashboard</span></a>
     <a href="#" data-page="manager">◈ <span>Manager Center</span><span class="nav-count" id="managerNavCount">0</span></a>
+    <a href="#" data-page="approvals">✓ <span>Approval Center</span><span class="nav-count" id="approvalNavCount">0</span></a>
     <a href="#" data-page="selfservice">◎ <span>My Portal</span></a>
     <a href="#" data-page="attendance">◷ <span>Attendance</span></a>
     <a href="#" data-page="employees">♙ <span>Employees</span></a>
@@ -81,9 +82,17 @@
   <div class="card"><div class="section-title"><h3>Notifications</h3><button class="btn" data-roles="admin,manager,payroll" onclick="markNotificationsRead()">Mark all read</button></div><div id="managerNotifications"></div></div>
 </section>
 
+<section class="page" id="page-approvals">
+ <div class="page-head"><div><h1>Approval Center</h1><p>Review attendance corrections, leave requests, overtime and payroll actions.</p></div><button class="btn" onclick="renderApprovals()">↻ Refresh</button></div>
+ <div class="cards approval-stats"><div class="card stat"><div><small>Attendance review</small><h2 id="approvalExceptionCount">0</h2></div><div class="stat-icon">!</div></div><div class="card stat"><div><small>Leave requests</small><h2 id="approvalLeaveCount">0</h2></div><div class="stat-icon">◌</div></div><div class="card stat"><div><small>Overtime requests</small><h2 id="approvalOvertimeCount">0</h2></div><div class="stat-icon">◷</div></div><div class="card stat"><div><small>Payroll period</small><h2 id="approvalPayrollStatus">Open</h2></div><div class="stat-icon">▰</div></div></div>
+ <div class="approval-grid"><div class="card"><div class="section-title"><h3>Attendance corrections</h3><span class="subtle">Missing checkouts and employee requests</span></div><div id="approvalExceptions"></div></div><div class="card"><div class="section-title"><h3>Leave requests</h3><span class="subtle">Approve or reject submitted leave</span></div><div id="approvalLeaves"></div></div></div>
+ <div class="card approval-overtime"><div class="section-title"><h3>Overtime requests</h3><span class="subtle">Review extra hours before payroll</span></div><div id="approvalOvertime"></div></div>
+</section>
+
 <section class="page" id="page-selfservice">
-  <div class="page-head"><div><h1>My Employee Portal</h1><p>Review your attendance, schedule, leave and payroll information.</p></div><button class="btn primary" onclick="openModal('correctionModal')">＋ Request correction</button></div>
+  <div class="page-head"><div><h1>My Employee Portal</h1><p>Review your attendance, schedule, leave and payroll information.</p></div><div class="actions"><button class="btn success" onclick="employeeClockAction('in')">▶ Clock in</button><button class="btn" onclick="employeeClockAction('out')">■ Clock out</button><button class="btn" onclick="openModal('leaveModal')">＋ Request leave</button><button class="btn" onclick="openModal('correctionModal')">＋ Request correction</button><button class="btn primary" onclick="openPayslip()">▣ View payslip</button></div></div>
   <div class="filters"><label class="inline-label">Employee <select id="selfEmployee" onchange="renderSelfService()"></select></label></div>
+  <div class="portal-grid"><div class="card"><div class="section-title"><h3>My profile</h3><button class="btn" onclick="saveEmployeeProfile()">Save profile</button></div><div class="form-grid"><label class="form-group"><span>Phone</span><input id="selfPhone"></label><label class="form-group"><span>Emergency contact</span><input id="selfEmergency" placeholder="Name and phone"></label><label class="form-group"><span>Time zone</span><select id="selfTimezone"><option>Local time</option><option>UTC</option><option>Asia/Dubai</option><option>Europe/London</option><option>America/New_York</option></select></label><label class="form-group"><span>Notifications</span><select id="selfNotificationPreference"><option value="all">All updates</option><option value="important">Approvals only</option><option value="none">Muted</option></select></label></div></div><div class="card"><div class="section-title"><h3>Contact manager</h3><button class="btn primary" onclick="sendEmployeeMessage()">Send message</button></div><p class="subtle">Ask about your schedule, attendance, payroll or leave.</p><div id="selfManagerContact"></div></div></div>
   <div class="cards">
     <div class="card stat"><div><small>Present this month</small><h2 id="selfPresent">0</h2></div><div class="stat-icon">✓</div></div>
     <div class="card stat"><div><small>Overtime hours</small><h2 id="selfOvertime">0</h2></div><div class="stat-icon">◷</div></div>
@@ -95,7 +104,10 @@
     <div class="card"><div class="section-title"><h3>Leave balance</h3><button class="btn" onclick="openModal('leaveModal')">Request leave</button></div><div id="selfLeaveDetails"></div></div>
   </div>
   <div class="card"><div class="section-title"><h3>My attendance</h3><span class="subtle">Current month</span></div><div class="card table-card"><table class="table"><thead><tr><th>Date</th><th>Check in</th><th>Check out</th><th>Hours</th><th>OT</th><th>Status</th></tr></thead><tbody id="selfAttendanceBody"></tbody></table></div></div>
-  <div class="card"><div class="section-title"><h3>Payslip preview</h3><button class="btn" onclick="openPayslip()">Open payslip</button></div><div id="selfPayslip"></div></div>
+  <div class="card"><div class="section-title"><h3>Attendance calendar</h3><button class="btn" onclick="downloadSelfAttendance()">⇩ Export</button></div><div id="selfAttendanceCalendar"></div></div>
+  <div class="card"><div class="section-title"><h3>Request history</h3><span class="subtle">Leave, corrections and overtime</span></div><div id="selfRequestHistory"></div></div>
+  <div class="card"><div class="section-title"><h3>Messages & notifications</h3><button class="btn" onclick="markSelfNotificationsRead()">Mark read</button></div><div id="selfNotifications"></div></div>
+  <div class="portal-grid"><div class="card"><div class="section-title"><h3>Payslip preview</h3><div class="actions"><button class="btn" onclick="downloadSelfPayslip()">⇩ Download</button><button class="btn" onclick="openPayslip()">Open payslip</button></div></div><div id="selfPayslip"></div></div><div class="card"><div class="section-title"><h3>My documents</h3></div><div id="selfDocuments"></div></div></div>
 </section>
 
 <section class="page" id="page-attendance">
