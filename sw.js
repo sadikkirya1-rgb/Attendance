@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smartattend-shell-v2';
+const CACHE_NAME = 'smartattend-shell-v3';
 const APP_SHELL = ['./', './index.html', './styles.css', './script.js'];
 
 self.addEventListener('install', event => {
@@ -13,7 +13,8 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   const isAppShell = APP_SHELL.some(path => new URL(path, self.location).pathname === new URL(event.request.url).pathname);
-  event.respondWith((isAppShell ? fetch(event.request).then(response => {
+  const isFaceAsset = new URL(event.request.url).pathname.includes('/node_modules/@vladmandic/face-api/');
+  event.respondWith((isAppShell || isFaceAsset ? fetch(event.request).then(response => {
     const copy = response.clone();
     caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
     return response;
